@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import Select from "./Components/Select";
-import Arena from "./Components/Arena";
-import Loader from "./Components/Loader";
+import Select from "./components/Select";
+import Arena from "./components/Arena";
+import Loader from "./components/Loader";
 import Fanime from "./utils/Fanime.json";
 import { transformCharacterData } from "./helpers/helpers";
 import "./styles/App.css";
