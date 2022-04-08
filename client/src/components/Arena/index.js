@@ -17,14 +17,14 @@ const Arena = ({ contract, playerCharacter, setPlayerCharacter }) => {
   }, []);
 
   const getBoss = async () => {
-    const txn = await contract.getBoss();
+    let txn = await contract.getBoss();
     setBoss(transformCharacterData(txn));
   };
 
   const attack = async () => {
     try {
       setLoadState("attacking");
-      const txn = await contract.attack();
+      let txn = await contract.attack();
       await txn.wait();
       setLoadState("hit");
       setToast(true);

@@ -17,7 +17,7 @@ const Select = ({ contract, setPlayerCharacter }) => {
 
   const getCharacters = async () => {
     try {
-      const txn = await contract.getCharacters();
+      let txn = await contract.getCharacters();
       const characters = txn.map((character) =>
         transformCharacterData(character)
       );
@@ -30,7 +30,7 @@ const Select = ({ contract, setPlayerCharacter }) => {
   const mint = async (characterId) => {
     try {
       setLoading(true);
-      const txn = await contract.mint(characterId);
+      let txn = await contract.mint(characterId);
       await txn.wait();
     } catch (error) {
       console.error(error);

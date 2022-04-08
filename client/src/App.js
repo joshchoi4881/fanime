@@ -36,7 +36,7 @@ const App = () => {
     }
     try {
       if (!window.ethereum) {
-        alert("download metamask");
+        alert("download metamask @ https://metamask.io/download/");
         return;
       }
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -68,7 +68,7 @@ const App = () => {
   const connectWallet = async () => {
     try {
       if (!window.ethereum) {
-        alert("download metamask");
+        alert("download metamask @ https://metamask.io/download/");
         return;
       }
       const accounts = await window.ethereum.request({
@@ -94,7 +94,7 @@ const App = () => {
   };
 
   const getPlayerCharacter = async () => {
-    const txn = await contract.getPlayerCharacter();
+    let txn = await contract.getPlayerCharacter();
     if (txn.name) {
       setPlayerCharacter(transformCharacterData(txn));
     }
