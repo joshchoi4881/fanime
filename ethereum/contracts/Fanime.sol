@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./libraries/Base64.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "hardhat/console.sol";
+import {Base64} from "./libraries/Base64.sol";
 
 contract Fanime is ERC721 {
     using Counters for Counters.Counter;
@@ -15,53 +15,69 @@ contract Fanime is ERC721 {
         string name;
         string imageURI;
         uint256 hp;
-        uint256 maxHp;
+        uint256 maxHP;
         uint256 ap;
     }
-    Character[] characters;
+    Character[] private characters;
     struct Boss {
         string name;
         string imageURI;
         uint256 hp;
-        uint256 maxHp;
+        uint256 maxHP;
         uint256 ap;
     }
-    Boss public boss;
-    mapping(address => uint256) public playerIds;
-    mapping(uint256 => Character) public playerCharacters;
+    Boss private boss;
+    mapping(address => uint256) private userIds;
+    mapping(uint256 => Character) private userCharacters;
     event NewMint(address sender, uint256 tokenId, uint256 characterId);
-    event NewAttack(uint256 newBossHp, uint256 newPlayerHp);
+    event NewAttack(address sender, uint256 characterHP, uint256 bossHP);
 
     constructor(
-        string[] memory characterNames,
-        string[] memory characterImageURIs,
-        uint256[] memory characterHps,
-        uint256[] memory characterAps,
-        string memory bossName,
-        string memory bossImageURI,
-        uint256 bossHp,
-        uint256 bossAp
+        string[] memory _characterNames,
+        string[] memory _characterImageURIs,
+        uint256[] memory _characterHPs,
+        uint256[] memory _characterAPs,
+        string memory _bossName,
+        string memory _bossImageURI,
+        uint256 _bossHP,
+        uint256 _bossAP
     ) ERC721("Fanime", "FNM") {
-        boss = Boss({
-            name: bossName,
-            imageURI: bossImageURI,
-            hp: bossHp,
-            maxHp: bossHp,
-            ap: bossAp
-        });
-        for (uint256 i = 0; i < characterNames.length; i += 1) {
+        tokenId.increment();
+        for (uint256 i = 0; i < _characterNames.length; i += 1) {
             characters.push(
                 Character({
                     characterId: i,
-                    name: characterNames[i],
-                    imageURI: characterImageURIs[i],
-                    hp: characterHps[i],
-                    maxHp: characterHps[i],
-                    ap: characterAps[i]
+                    name: _characterNames[i],
+                    imageURI: _characterImageURIs[i],
+                    hp: _characterHPs[i],
+                    maxHP: _characterHPs[i],
+                    ap: _characterAPs[i]
                 })
             );
         }
+        boss = Boss({
+            name: _bossName,
+            imageURI: _bossImageURI,
+            hp: _bossHP,
+            maxHP: _bossHP,
+            ap: _bossAP
+        });
+    }
+
+    function mint(uint256 _characterId) external {
+        uint256 _tokenId = tokenId.current();
+        _safeMint(msg.sender, _tokenId);
+        userIds[msg.sender] = _tokenId;
+        userCharacters[_tokenId] = Character({
+            characterId: _characterId,
+            name: characters[_characterId].name,
+            imageURI: characters[_characterId].imageURI,
+            hp: characters[_characterId].hp,
+            maxHP: characters[_characterId].maxHP,
+            ap: characters[_characterId].ap
+        });
         tokenId.increment();
+        emit NewMint(msg.sender, _tokenId, _characterId);
     }
 
     function tokenURI(uint256 _tokenId)
@@ -70,9 +86,9 @@ contract Fanime is ERC721 {
         override
         returns (string memory)
     {
-        Character memory character = playerCharacters[_tokenId];
+        Character memory character = userCharacters[_tokenId];
         string memory hp = Strings.toString(character.hp);
-        string memory maxHp = Strings.toString(character.maxHp);
+        string memory maxHP = Strings.toString(character.maxHP);
         string memory ap = Strings.toString(character.ap);
         string memory json = Base64.encode(
             abi.encodePacked(
@@ -83,7 +99,7 @@ contract Fanime is ERC721 {
                 '", "attributes": [ { "trait_type": "Health Points", "value": ',
                 hp,
                 ', "max_value":',
-                maxHp,
+                maxHP,
                 '}, { "trait_type": "Attack Power", "value": ',
                 ap,
                 "} ]}"
@@ -95,55 +111,39 @@ contract Fanime is ERC721 {
         return output;
     }
 
-    function getPlayerCharacter() public view returns (Character memory) {
-        uint256 playerId = playerIds[msg.sender];
-        if (playerId > 0) {
-            return playerCharacters[playerId];
+    function attack() external {
+        uint256 userId = userIds[msg.sender];
+        Character storage player = userCharacters[userId];
+        require(player.hp > 0, "error: player is defeated");
+        require(boss.hp > 0, "error: boss is defeated");
+        if (player.hp < boss.ap) {
+            player.hp = 0;
+        } else {
+            player.hp = player.hp - boss.ap;
+        }
+        if (boss.hp < player.ap) {
+            boss.hp = 0;
+        } else {
+            boss.hp = boss.hp - player.ap;
+        }
+        emit NewAttack(msg.sender, player.hp, boss.hp);
+    }
+
+    function getCharacters() external view returns (Character[] memory) {
+        return characters;
+    }
+
+    function getUserCharacter() external view returns (Character memory) {
+        uint256 userId = userIds[msg.sender];
+        if (userId > 0) {
+            return userCharacters[userId];
         } else {
             Character memory empty;
             return empty;
         }
     }
 
-    function mint(uint256 _characterId) external {
-        uint256 _tokenId = tokenId.current();
-        _safeMint(msg.sender, _tokenId);
-        playerCharacters[_tokenId] = Character({
-            characterId: _characterId,
-            name: characters[_characterId].name,
-            imageURI: characters[_characterId].imageURI,
-            hp: characters[_characterId].hp,
-            maxHp: characters[_characterId].maxHp,
-            ap: characters[_characterId].ap
-        });
-        playerIds[msg.sender] = _tokenId;
-        tokenId.increment();
-        emit NewMint(msg.sender, _tokenId, _characterId);
-    }
-
-    function attack() public {
-        uint256 playerId = playerIds[msg.sender];
-        Character storage player = playerCharacters[playerId];
-        require(player.hp > 0, "error: player is defeated");
-        require(boss.hp > 0, "error: boss is already defeated");
-        if (boss.hp < player.ap) {
-            boss.hp = 0;
-        } else {
-            boss.hp = boss.hp - player.ap;
-        }
-        if (player.hp < boss.ap) {
-            player.hp = 0;
-        } else {
-            player.hp = player.hp - boss.ap;
-        }
-        emit NewAttack(boss.hp, player.hp);
-    }
-
-    function getCharacters() public view returns (Character[] memory) {
-        return characters;
-    }
-
-    function getBoss() public view returns (Boss memory) {
+    function getBoss() external view returns (Boss memory) {
         return boss;
     }
 }

@@ -4,7 +4,7 @@ require("@nomiclabs/hardhat-waffle");
 module.exports = {
   solidity: "0.8.1",
   networks: {
-    rinkeby: {
+    goerli: {
       url: process.env.ALCHEMY_STAGING_HTTP,
       accounts: [process.env.PRIVATE_KEY],
     },

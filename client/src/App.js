@@ -10,20 +10,26 @@ import "./styles/App.css";
 const REACT_APP_CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
 const FANIME = Fanime.abi;
 
+const DEFAULT_CONTRACT = null;
+const DEFAULT_ACCOUNT = null;
+const DEFAULT_CHAIN = null;
+const DEFAULT_USER_CHARACTER = null;
+const DEFAULT_IS_LOADING = false;
+
 const App = () => {
-  const [contract, setContract] = useState(null);
-  const [account, setAccount] = useState(null);
-  const [chain, setChain] = useState(null);
-  const [playerCharacter, setPlayerCharacter] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [contract, setContract] = useState(DEFAULT_CONTRACT);
+  const [account, setAccount] = useState(DEFAULT_ACCOUNT);
+  const [chain, setChain] = useState(DEFAULT_CHAIN);
+  const [userCharacter, setUserCharacter] = useState(DEFAULT_USER_CHARACTER);
+  const [isLoading, setIsLoading] = useState(DEFAULT_IS_LOADING);
 
   useEffect(() => {
     isConnected();
   }, []);
 
   useEffect(() => {
-    if (contract && account && chain === "0x4") {
-      getPlayerCharacter();
+    if (contract && account && chain === "0x5") {
+      getUserCharacter();
     }
   }, [contract, account, chain]);
 
@@ -84,7 +90,7 @@ const App = () => {
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0x4" }],
+        params: [{ chainId: "0x5" }],
       });
       const chainId = await window.ethereum.request({ method: "eth_chainId" });
       setChain(chainId);
@@ -93,16 +99,20 @@ const App = () => {
     }
   };
 
-  const getPlayerCharacter = async () => {
-    let txn = await contract.getPlayerCharacter();
+  const getUserCharacter = async () => {
+    const txn = await contract.getUserCharacter();
     if (txn.name) {
-      setPlayerCharacter(transformCharacterData(txn));
+      setUserCharacter(transformCharacterData(txn));
     }
   };
 
   const render = () => {
-    if (loading) {
-      return <Loader />;
+    if (isLoading) {
+      return (
+        <>
+          <Loader />
+        </>
+      );
     } else if (!account) {
       return (
         <>
@@ -120,7 +130,7 @@ const App = () => {
           </div>
         </>
       );
-    } else if (chain !== "0x4") {
+    } else if (chain !== "0x5") {
       return (
         <>
           <div className="connect-wallet-container">
@@ -132,22 +142,26 @@ const App = () => {
               className="cta-button connect-wallet-button"
               onClick={switchChain}
             >
-              switch to rinkeby
+              switch to goerli
             </button>
           </div>
         </>
       );
-    } else if (account && !playerCharacter) {
+    } else if (!userCharacter) {
       return (
-        <Select contract={contract} setPlayerCharacter={setPlayerCharacter} />
+        <>
+          <Select contract={contract} setUserCharacter={setUserCharacter} />
+        </>
       );
-    } else if (account && playerCharacter) {
+    } else if (userCharacter) {
       return (
-        <Arena
-          contract={contract}
-          playerCharacter={playerCharacter}
-          setPlayerCharacter={setPlayerCharacter}
-        />
+        <>
+          <Arena
+            contract={contract}
+            userCharacter={userCharacter}
+            setUserCharacter={setUserCharacter}
+          />
+        </>
       );
     }
   };

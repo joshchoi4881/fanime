@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Loader from "../Loader";
-import { transformCharacterData } from "../../helpers/helpers";
-import "./select.css";
+import Loader from "./Loader";
+import { transformCharacterData } from "../helpers/helpers";
+import "../styles/Select.css";
 
-const Select = ({ contract, setPlayerCharacter }) => {
+const Select = ({ contract, setUserCharacter }) => {
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -40,8 +40,8 @@ const Select = ({ contract, setPlayerCharacter }) => {
 
   const onNewMint = async (sender, tokenId, characterId) => {
     try {
-      const playerCharacter = await contract.getPlayerCharacter();
-      setPlayerCharacter(transformCharacterData(playerCharacter));
+      const userCharacter = await contract.getUserCharacter();
+      setUserCharacter(transformCharacterData(userCharacter));
     } catch (error) {
       console.error(error);
     }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Loader from "../Loader";
-import { transformCharacterData } from "../../helpers/helpers";
-import "./arena.css";
+import Loader from "./Loader";
+import { transformCharacterData } from "../helpers/helpers";
+import "../styles/Arena.css";
 
-const Arena = ({ contract, playerCharacter, setPlayerCharacter }) => {
+const Arena = ({ contract, userCharacter, setUserCharacter }) => {
   const [boss, setBoss] = useState({});
   const [loadState, setLoadState] = useState("");
   const [toast, setToast] = useState(false);
@@ -37,22 +37,20 @@ const Arena = ({ contract, playerCharacter, setPlayerCharacter }) => {
     }
   };
 
-  const onNewAttack = (newBossHp, newPlayerHp) => {
-    const bossHp = newBossHp.toNumber();
-    const playerHp = newPlayerHp.toNumber();
-    setBoss((prev) => {
-      return { ...prev, hp: bossHp };
+  const onNewAttack = (sender, characterHP, bossHP) => {
+    setUserCharacter((prev) => {
+      return { ...prev, hp: characterHP.toNumber() };
     });
-    setPlayerCharacter((prev) => {
-      return { ...prev, hp: playerHp };
+    setBoss((prev) => {
+      return { ...prev, hp: bossHP.toNumber() };
     });
   };
 
   return (
     <div className="arena-container">
-      {playerCharacter && boss && (
+      {userCharacter && boss && (
         <div id="toast" className={toast ? "show" : ""}>
-          <div id="desc">{`💥 ${boss.name} lost ${playerCharacter.ap} hp`}</div>
+          <div id="desc">{`💥 ${boss.name} lost ${userCharacter.ap} hp`}</div>
         </div>
       )}
       {boss && (
@@ -62,8 +60,8 @@ const Arena = ({ contract, playerCharacter, setPlayerCharacter }) => {
             <div className="image-content">
               <img src={boss.imageURI} alt={`${boss.name}`} />
               <div className="health-bar">
-                <progress value={boss.hp} max={boss.maxHp} />
-                <p>{`${boss.hp} / ${boss.maxHp} hp`}</p>
+                <progress value={boss.hp} max={boss.maxHP} />
+                <p>{`${boss.hp} / ${boss.maxHP} hp`}</p>
               </div>
             </div>
           </div>
@@ -80,27 +78,27 @@ const Arena = ({ contract, playerCharacter, setPlayerCharacter }) => {
           )}
         </div>
       )}
-      {playerCharacter && (
+      {userCharacter && (
         <div className="players-container">
           <div className="player-container">
             <h2>your character</h2>
             <div className="player">
               <div className="image-content">
-                <h2>{playerCharacter.name}</h2>
+                <h2>{userCharacter.name}</h2>
                 <img
-                  src={playerCharacter.imageURI}
-                  alt={`${playerCharacter.name}`}
+                  src={userCharacter.imageURI}
+                  alt={`${userCharacter.name}`}
                 />
                 <div className="health-bar">
                   <progress
-                    value={playerCharacter.hp}
-                    max={playerCharacter.maxHp}
+                    value={userCharacter.hp}
+                    max={userCharacter.maxHP}
                   />
-                  <p>{`${playerCharacter.hp} / ${playerCharacter.maxHp} hp`}</p>
+                  <p>{`${userCharacter.hp} / ${userCharacter.maxHP} hp`}</p>
                 </div>
               </div>
               <div className="stats">
-                <h4>{`attack power: ${playerCharacter.ap}`}</h4>
+                <h4>{`attack power: ${userCharacter.ap}`}</h4>
               </div>
             </div>
           </div>

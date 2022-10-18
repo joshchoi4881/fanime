@@ -3,7 +3,7 @@ const transformCharacterData = (characterData) => {
     name: characterData.name,
     imageURI: characterData.imageURI,
     hp: characterData.hp.toNumber(),
-    maxHp: characterData.maxHp.toNumber(),
+    maxHP: characterData.maxHP.toNumber(),
     ap: characterData.ap.toNumber(),
   };
 };
